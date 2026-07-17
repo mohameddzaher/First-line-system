@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { ResourceManager } from "@/components/data/ResourceManager";
 import type { Column } from "@/components/data/DataTable";
 import type { FieldDef } from "@/components/data/ResourceForm";
@@ -32,6 +33,7 @@ const STATUS = [
 
 export function CompaniesClient({ initial, locale, title }: { initial: ListResult<CompanyRow>; locale: Locale; title: string }) {
   const { t } = useI18n();
+  const router = useRouter();
   const meta = (arr: readonly (readonly [string, string, string, string])[], v: string) => arr.find((x) => x[0] === v);
 
   const columns: Column<CompanyRow>[] = [
@@ -67,6 +69,7 @@ export function CompaniesClient({ initial, locale, title }: { initial: ListResul
       exportFilename="companies"
       addLabel={locale === "ar" ? "إضافة شركة" : "Add Company"}
       labelOf={(r) => r.name}
+      rowHref={(r) => `/crm/companies/${r._id}`}
       filters={[
         { key: "kind", label: locale === "ar" ? "النوع" : "Kind", options: KIND.map((x) => ({ value: x[0], label: locale === "ar" ? x[1] : x[2] })) },
         { key: "status", label: t("common.status"), options: STATUS.map((x) => ({ value: x[0], label: locale === "ar" ? x[1] : x[2] })) },

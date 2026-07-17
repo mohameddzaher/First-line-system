@@ -36,6 +36,7 @@ export const RESOURCES = [
   "hr.leaveTypes",
   "hr.tasks",
   "hr.complaints",
+  "hr.payroll",
   // Fleet
   "fleet.dashboard",
   "fleet.vehicles",
@@ -109,6 +110,7 @@ export const ROLES = {
       ...all("hr.leaveTypes"),
       ...all("hr.tasks"),
       ...all("hr.complaints"),
+      ...readOnly("hr.payroll"),
       ...readOnly("fleet.vehicles"),
       ...readOnly("admin.audit"),
     ],

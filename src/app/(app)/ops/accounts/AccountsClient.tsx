@@ -171,6 +171,7 @@ export function AccountsClient({
         limit={initial.limit}
         pages={initial.pages}
         rowKey={(r) => r._id}
+        onRowClick={(r) => router.push(`/ops/accounts/${r._id}`)}
         filters={[
           { key: "project", label: locale === "ar" ? "المشروع" : "Project", options: projects },
           { key: "status", label: t("common.status"), options: STATUS.map((x) => ({ value: x[0], label: locale === "ar" ? x[1] : x[2] })) },

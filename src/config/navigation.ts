@@ -50,6 +50,7 @@ export const NAVIGATION: NavGroup[] = [
       { labelKey: "hr.requests", href: "/hr/requests", permission: "hr.requests:read" },
       { labelKey: "hr.custody", href: "/hr/custody", permission: "hr.custody:read" },
       { labelKey: "hr.licenses", href: "/hr/licenses", permission: "hr.licenses:read" },
+      { labelKey: "hr.payroll", href: "/hr/payroll", permission: "hr.payroll:read" },
       { labelKey: "hr.leaveTypes", href: "/hr/leave-types", permission: "hr.leaveTypes:read" },
       { labelKey: "hr.tasks", href: "/hr/tasks", permission: "hr.tasks:read" },
       { labelKey: "hr.complaints", href: "/hr/complaints", permission: "hr.complaints:read" },
@@ -101,6 +102,7 @@ export const NAVIGATION: NavGroup[] = [
       { labelKey: "crm.companies", href: "/crm/companies", permission: "crm.companies:read" },
       { labelKey: "crm.contacts", href: "/crm/contacts", permission: "crm.contacts:read" },
       { labelKey: "crm.deals", href: "/crm/deals", permission: "crm.deals:read" },
+      { labelKey: "crm.pipeline", href: "/crm/pipeline", permission: "crm.deals:read" },
     ],
   },
   {

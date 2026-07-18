@@ -45,3 +45,4 @@ next-env.d.ts
 # Real business data (PII: names, ID numbers) — never commit
 /data/fleet-import.json
 /data/*.json
+tests/.interactions.log

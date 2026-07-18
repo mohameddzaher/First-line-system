@@ -31,6 +31,7 @@ Every number in every dashboard is computed live from MongoDB. No mock data.
 - [Data model](#data-model)
 - [Project structure](#project-structure)
 - [Scripts](#scripts)
+- [Testing](#testing)
 - [Deployment](#deployment)
 - [Conventions for contributors](#conventions-for-contributors)
 
@@ -330,6 +331,33 @@ scripts/               # seed.mjs · seed-demo.mjs · import-fleet.mjs
 | `npm run seed` | Super admin + reference data (idempotent) |
 | `npm run seed:demo` | Realistic demo data across every module |
 | `npm run import:fleet` | Import the real fleet workbook with full linkage |
+| `npm run test:e2e` | All four browser suites below, in order |
+| `npm run test:pages` | Loads all 68 pages, fails on console errors, error boundaries, invalid nesting, empty renders |
+| `npm run test:interactions` | Drives search, Excel export and the create form on all 34 list pages |
+| `npm run test:edit` | Opens each edit form, saves it untouched, fails if any stored field changed |
+| `npm run test:roles` | Signs in as all 10 roles; checks landing page and that every offered nav link loads |
+
+---
+
+## Testing
+
+The suites in `tests/` drive a real browser against a running dev server, because
+HTTP status codes hide the failures that matter — a page can return 200 while its
+sidebar renders off-screen, its search silently matches nothing, or a save quietly
+blanks a field.
+
+```bash
+npm run dev          # in one terminal
+npm run test:e2e     # in another
+```
+
+They assume the seeded super admin; override with `TEST_EMAIL` / `TEST_PASSWORD` /
+`BASE_URL`. `test:roles` creates its own throwaway users and deletes them at the end.
+
+`test:edit` earns its place: it is the regression guard for PATCH requests that
+rewrite fields the client never sent. That class of bug zeroed inventory stock on a
+rename, blanked article bodies, reset deal probabilities, and re-enabled disabled
+user accounts — all while returning 200.
 
 ---
 

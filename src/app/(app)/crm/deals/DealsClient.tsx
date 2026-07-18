@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ResourceManager } from "@/components/data/ResourceManager";
 import type { Column } from "@/components/data/DataTable";
 import type { FieldDef } from "@/components/data/ResourceForm";
@@ -46,7 +47,7 @@ export function DealsClient({
   const stageMeta = (v: string) => STAGES.find((x) => x[0] === v);
 
   const columns: Column<DealRow>[] = [
-    { key: "title", header: locale === "ar" ? "العنوان" : "Title", sortable: true, cell: (r) => <span className="font-medium text-fg">{r.title}</span> },
+    { key: "title", header: locale === "ar" ? "العنوان" : "Title", sortable: true, cell: (r) => <Link href={`/crm/deals/${r._id}`} className="font-medium text-primary hover:underline">{r.title}</Link> },
     { key: "company", header: locale === "ar" ? "الشركة" : "Company", cell: (r) => <span className="text-sm text-fg-muted">{r.company?.name || "—"}</span> },
     { key: "stage", header: locale === "ar" ? "المرحلة" : "Stage", cell: (r) => { const m = stageMeta(r.stage); return <Badge tone={(m?.[3] as never) ?? "neutral"} dot>{m ? (locale === "ar" ? m[1] : m[2]) : r.stage}</Badge>; } },
     { key: "value", header: locale === "ar" ? "القيمة" : "Value", align: "end", sortable: true, cell: (r) => <span className="tabular text-sm font-medium">{formatCurrency(r.value, locale)}</span> },

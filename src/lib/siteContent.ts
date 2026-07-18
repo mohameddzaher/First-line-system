@@ -11,7 +11,7 @@ export async function getSiteSettings(): Promise<ISiteSetting> {
   const doc = await SiteSetting.findOneAndUpdate(
     { key: "main" },
     { $setOnInsert: { key: "main", ...DEFAULT_CONTENT } },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
+    { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
   ).lean();
   return serialize(doc) as ISiteSetting;
 }

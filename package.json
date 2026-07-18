@@ -9,7 +9,12 @@
     "lint": "eslint",
     "seed": "node scripts/seed.mjs",
     "seed:demo": "node scripts/seed-demo.mjs",
-    "import:fleet": "node scripts/import-fleet.mjs"
+    "import:fleet": "node scripts/import-fleet.mjs",
+    "test:pages": "node tests/sweep.mjs",
+    "test:interactions": "node tests/interactions.mjs",
+    "test:roles": "node tests/roles.mjs",
+    "test:e2e": "npm run test:pages && npm run test:interactions && npm run test:edit && npm run test:roles",
+    "test:edit": "node tests/edit-roundtrip.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -33,6 +38,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "playwright": "^1.61.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

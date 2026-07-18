@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ResourceManager } from "@/components/data/ResourceManager";
 import type { Column } from "@/components/data/DataTable";
 import type { FieldDef } from "@/components/data/ResourceForm";
@@ -13,7 +14,7 @@ export interface ContactRow { _id: string; name: string; title?: string; email?:
 export function ContactsClient({ initial, locale, title, companies }: { initial: ListResult<ContactRow>; locale: Locale; title: string; companies: { value: string; label: string }[] }) {
   const { t } = useI18n();
   const columns: Column<ContactRow>[] = [
-    { key: "name", header: t("common.name"), sortable: true, cell: (r) => <span className="font-medium text-fg">{r.name}</span> },
+    { key: "name", header: t("common.name"), sortable: true, cell: (r) => <Link href={`/crm/contacts/${r._id}`} className="font-medium text-primary hover:underline">{r.name}</Link> },
     { key: "company", header: locale === "ar" ? "الشركة" : "Company", cell: (r) => <span className="text-sm text-fg-muted">{r.company?.name || "—"}</span> },
     { key: "title", header: locale === "ar" ? "المسمى" : "Title", hideOnMobile: true, cell: (r) => <span className="text-sm text-fg">{r.title || "—"}</span> },
     { key: "email", header: t("common.email"), hideOnMobile: true, cell: (r) => <span className="text-sm text-fg-muted" dir="ltr">{r.email || "—"}</span> },

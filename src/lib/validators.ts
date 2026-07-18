@@ -38,6 +38,31 @@ export const patchObjectId = objectId.optional();
 export const patchDate = optionalDate.optional();
 export const patchString = optionalString.optional();
 
+/**
+ * Derives a PATCH schema from a create schema.
+ *
+ * `.partial()` on its own is not enough: it makes every key optional but keeps
+ * each key's `.default()`, so any field the client omits is silently rewritten
+ * to its default. That is how renaming an inventory item zeroed its stock,
+ * editing an article title blanked its body, and a user PATCH could re-enable a
+ * disabled account. Stripping the defaults first makes an absent key mean
+ * "leave this alone", which is what PATCH is supposed to mean.
+ */
+export function toPatchSchema<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
+  const source = schema.shape as unknown as Record<string, z.ZodTypeAny>;
+  const shape: Record<string, z.ZodTypeAny> = {};
+  for (const key of Object.keys(source)) {
+    const field = source[key];
+    shape[key] =
+      field instanceof z.ZodDefault ? (field.removeDefault() as unknown as z.ZodTypeAny) : field;
+  }
+  // The cast restores the precise per-key types. It is accurate rather than a
+  // convenience: .partial() and this both make every key optional — the only
+  // difference is that the defaults no longer fire at runtime.
+  return z.object(shape).partial() as unknown as ReturnType<z.ZodObject<T>["partial"]>;
+}
+
+
 export const money = z
   .union([z.number(), z.string()])
   .optional()
@@ -124,7 +149,7 @@ export const CreateEmployeeSchema = z.object({
   notes: optionalString,
 });
 
-export const UpdateEmployeeSchema = CreateEmployeeSchema.partial();
+export const UpdateEmployeeSchema = toPatchSchema(CreateEmployeeSchema);
 
 // ── Leave Types ──────────────────────────────────────────────
 export const CreateLeaveTypeSchema = z.object({
@@ -135,7 +160,7 @@ export const CreateLeaveTypeSchema = z.object({
   affectsBalance: z.boolean().default(false),
   isActive: z.boolean().default(true),
 });
-export const UpdateLeaveTypeSchema = CreateLeaveTypeSchema.partial();
+export const UpdateLeaveTypeSchema = toPatchSchema(CreateLeaveTypeSchema);
 
 // ── Departments ──────────────────────────────────────────────
 export const CreateDepartmentSchema = z.object({
@@ -144,7 +169,7 @@ export const CreateDepartmentSchema = z.object({
   code: z.string().trim().optional(),
   isActive: z.boolean().default(true),
 });
-export const UpdateDepartmentSchema = CreateDepartmentSchema.partial();
+export const UpdateDepartmentSchema = toPatchSchema(CreateDepartmentSchema);
 
 // ── Contracts ────────────────────────────────────────────────
 export const CreateContractSchema = z.object({
@@ -160,7 +185,7 @@ export const CreateContractSchema = z.object({
   status: z.enum(["active", "expired", "terminated", "draft"]).default("active"),
   notes: optionalString,
 });
-export const UpdateContractSchema = CreateContractSchema.partial();
+export const UpdateContractSchema = toPatchSchema(CreateContractSchema);
 
 // ── Leaves ───────────────────────────────────────────────────
 export const CreateLeaveSchema = z.object({
@@ -192,7 +217,7 @@ export const CreateCustodySchema = z.object({
   warehouse: objectId,
   notes: optionalString,
 });
-export const UpdateCustodySchema = CreateCustodySchema.partial();
+export const UpdateCustodySchema = toPatchSchema(CreateCustodySchema);
 
 // ── Licenses ─────────────────────────────────────────────────
 export const CreateLicenseSchema = z.object({
@@ -206,7 +231,7 @@ export const CreateLicenseSchema = z.object({
   notes: optionalString,
   isActive: z.boolean().default(true),
 });
-export const UpdateLicenseSchema = CreateLicenseSchema.partial();
+export const UpdateLicenseSchema = toPatchSchema(CreateLicenseSchema);
 
 // ── Employee Requests ────────────────────────────────────────
 export const CreateRequestSchema = z.object({
@@ -248,7 +273,7 @@ export const CreateTaskSchema = z.object({
   assignedTo: objectId,
   relatedEmployee: objectId,
 });
-export const UpdateTaskSchema = CreateTaskSchema.partial();
+export const UpdateTaskSchema = toPatchSchema(CreateTaskSchema);
 
 // ── Vehicles ─────────────────────────────────────────────────
 export const VEHICLE_STATUS_ENUM = [
@@ -277,7 +302,7 @@ export const CreateVehicleSchema = z.object({
   insuranceExpiry: optionalDate,
   notes: optionalString,
 });
-export const UpdateVehicleSchema = CreateVehicleSchema.partial();
+export const UpdateVehicleSchema = toPatchSchema(CreateVehicleSchema);
 
 export const AuthorizeVehicleSchema = z.object({
   employee: requiredObjectId,
@@ -300,7 +325,7 @@ export const CreateAccidentSchema = z.object({
   location: optionalString,
   reportNumber: optionalString,
 });
-export const UpdateAccidentSchema = CreateAccidentSchema.partial().extend({
+export const UpdateAccidentSchema = toPatchSchema(CreateAccidentSchema).extend({
   vehicle: requiredObjectId.optional(),
 });
 
@@ -316,7 +341,7 @@ export const CreateMaintenanceSchema = z.object({
   description: optionalString,
   cost: money,
 });
-export const UpdateMaintenanceSchema = CreateMaintenanceSchema.partial().extend({
+export const UpdateMaintenanceSchema = toPatchSchema(CreateMaintenanceSchema).extend({
   vehicle: requiredObjectId.optional(),
 });
 
@@ -328,7 +353,7 @@ export const CreateProjectSchema = z.object({
   client: objectId,
   isActive: z.boolean().default(true),
 });
-export const UpdateProjectSchema = CreateProjectSchema.partial();
+export const UpdateProjectSchema = toPatchSchema(CreateProjectSchema);
 
 export const CreateAccountSchema = z.object({
   project: requiredObjectId,
@@ -338,7 +363,7 @@ export const CreateAccountSchema = z.object({
   status: z.enum(["active", "idle", "suspended", "closed"]).default("idle"),
   notes: optionalString,
 });
-export const UpdateAccountSchema = CreateAccountSchema.partial();
+export const UpdateAccountSchema = toPatchSchema(CreateAccountSchema);
 
 export const AssignAccountSchema = z.object({
   employee: requiredObjectId,
@@ -354,7 +379,7 @@ export const CreateWarehouseSchema = z.object({
   manager: objectId,
   isActive: z.boolean().default(true),
 });
-export const UpdateWarehouseSchema = CreateWarehouseSchema.partial();
+export const UpdateWarehouseSchema = toPatchSchema(CreateWarehouseSchema);
 
 export const CreateInventorySchema = z.object({
   name: z.string().trim().min(1),
@@ -367,7 +392,7 @@ export const CreateInventorySchema = z.object({
   custodyType: optionalString,
   notes: optionalString,
 });
-export const UpdateInventorySchema = CreateInventorySchema.partial();
+export const UpdateInventorySchema = toPatchSchema(CreateInventorySchema);
 
 export const POLineSchema = z.object({
   description: z.string().trim().min(1),
@@ -417,7 +442,7 @@ export const CreateCompanySchema = z.object({
   owner: objectId,
   notes: optionalString,
 });
-export const UpdateCompanySchema = CreateCompanySchema.partial();
+export const UpdateCompanySchema = toPatchSchema(CreateCompanySchema);
 
 export const CreateContactSchema = z.object({
   name: z.string().trim().min(1),
@@ -427,7 +452,7 @@ export const CreateContactSchema = z.object({
   phone: optionalString,
   notes: optionalString,
 });
-export const UpdateContactSchema = CreateContactSchema.partial();
+export const UpdateContactSchema = toPatchSchema(CreateContactSchema);
 
 export const CreateDealSchema = z.object({
   title: z.string().trim().min(1),
@@ -440,7 +465,7 @@ export const CreateDealSchema = z.object({
   expectedCloseDate: optionalDate,
   notes: optionalString,
 });
-export const UpdateDealSchema = CreateDealSchema.partial();
+export const UpdateDealSchema = toPatchSchema(CreateDealSchema);
 
 // ── Sales Targets ────────────────────────────────────────────
 export const CreateTargetSchema = z.object({
@@ -449,7 +474,7 @@ export const CreateTargetSchema = z.object({
   targetAmount: z.coerce.number().min(0),
   notes: optionalString,
 });
-export const UpdateTargetSchema = CreateTargetSchema.partial();
+export const UpdateTargetSchema = toPatchSchema(CreateTargetSchema);
 
 // ── Orders (last-mile delivery) ──────────────────────────────
 /**
@@ -481,7 +506,7 @@ export const CreateOrderSchema = z.object({
   slaDueAt: optionalDate,
   notes: optionalString,
 });
-export const UpdateOrderSchema = CreateOrderSchema.partial();
+export const UpdateOrderSchema = toPatchSchema(CreateOrderSchema);
 export const AssignOrderSchema = z.object({ driver: requiredObjectId });
 export const OrderStatusSchema = z.object({
   status: z.enum(["new", "assigned", "picked_up", "in_transit", "delivered", "failed", "returned", "cancelled"]),
@@ -501,7 +526,7 @@ export const CreateTransactionSchema = z.object({
   method: optionalString,
   description: optionalString,
 });
-export const UpdateTransactionSchema = CreateTransactionSchema.partial();
+export const UpdateTransactionSchema = toPatchSchema(CreateTransactionSchema);
 
 // ── Attendance ───────────────────────────────────────────────
 export const CreateAttendanceSchema = z.object({
@@ -513,7 +538,7 @@ export const CreateAttendanceSchema = z.object({
   hours: money,
   notes: optionalString,
 });
-export const UpdateAttendanceSchema = CreateAttendanceSchema.partial();
+export const UpdateAttendanceSchema = toPatchSchema(CreateAttendanceSchema);
 
 // ── Stock movement ───────────────────────────────────────────
 export const CreateMovementSchema = z.object({
@@ -537,7 +562,7 @@ export const CreateArticleSchema = z.object({
   tags: z.array(z.string()).default([]),
   published: z.boolean().default(false),
 });
-export const UpdateArticleSchema = CreateArticleSchema.partial();
+export const UpdateArticleSchema = toPatchSchema(CreateArticleSchema);
 
 export const CreateJobSchema = z.object({
   title_ar: z.string().trim().min(1),
@@ -550,7 +575,7 @@ export const CreateJobSchema = z.object({
   description_en: z.string().default(""),
   published: z.boolean().default(true),
 });
-export const UpdateJobSchema = CreateJobSchema.partial();
+export const UpdateJobSchema = toPatchSchema(CreateJobSchema);
 
 export const CreateClientSchema = z.object({
   name: z.string().trim().min(1),
@@ -559,9 +584,9 @@ export const CreateClientSchema = z.object({
   order: z.coerce.number().default(0),
   active: z.boolean().default(true),
 });
-export const UpdateClientSchema = CreateClientSchema.partial();
+export const UpdateClientSchema = toPatchSchema(CreateClientSchema);
 
-export const UpdateUserSchema = CreateUserSchema.partial().extend({
+export const UpdateUserSchema = toPatchSchema(CreateUserSchema).extend({
   // Password is optional on update; empty string means "leave unchanged".
   password: z
     .string()

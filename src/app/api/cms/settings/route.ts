@@ -25,7 +25,7 @@ export const PATCH = guard({ permission: "cms.pages:update" }, async ({ request,
   const updated = await SiteSetting.findOneAndUpdate(
     { key: "main" },
     { $set: { ...body, updatedBy: user.id } },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: "after" },
   ).lean();
 
   await writeAudit({

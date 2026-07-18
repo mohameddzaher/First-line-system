@@ -11,7 +11,7 @@ const UpdateSchema = z.object({
 
 export const PATCH = guard({ permission: "cms.submissions:update" }, async ({ request, params, user }) => {
   const body = await readBody(request, UpdateSchema);
-  const doc = await Submission.findByIdAndUpdate(params.id, { $set: { status: body.status } }, { new: true }).lean();
+  const doc = await Submission.findByIdAndUpdate(params.id, { $set: { status: body.status } }, { returnDocument: "after" }).lean();
   if (!doc) return ok({ error: "NOT_FOUND" }, 404);
   await writeAudit({ actor: user, action: "update", resource: "cms.submissions", resourceId: params.id, resourceLabel: doc.email ?? doc.name ?? "" });
   return ok(doc);

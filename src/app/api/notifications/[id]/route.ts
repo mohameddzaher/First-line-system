@@ -16,7 +16,7 @@ export const PATCH = guard({ authOnly: true }, async ({ request, params, user })
   const updated = await Notification.findOneAndUpdate(
     { _id: params.id, user: user.id },
     { $set: { read: body.read } },
-    { new: true },
+    { returnDocument: "after" },
   ).lean();
   if (!updated) return ok({ error: "NOT_FOUND" }, 404);
   return ok(updated);

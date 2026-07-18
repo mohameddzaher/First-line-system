@@ -64,8 +64,11 @@ export function collectionRoute<T>(config: CrudConfig<T>) {
 }
 
 /** Generates GET (one) + PATCH (update) + DELETE handlers keyed by [id]. */
+const OBJECT_ID = /^[0-9a-fA-F]{24}$/;
+
 export function itemRoute<T>(config: CrudConfig<T>) {
   const GET = guard({ permission: `${config.resource}:read` }, async ({ params }) => {
+    if (!OBJECT_ID.test(params.id)) return ok({ error: "NOT_FOUND" }, 404);
     let q = config.model.findById(params.id);
     if (config.listSpec.populate) q = q.populate(config.listSpec.populate as string);
     const doc = await q.lean();
@@ -74,6 +77,7 @@ export function itemRoute<T>(config: CrudConfig<T>) {
   });
 
   const PATCH = guard({ permission: `${config.resource}:update` }, async ({ request, params, user }) => {
+    if (!OBJECT_ID.test(params.id)) return ok({ error: "NOT_FOUND" }, 404);
     const existing = await config.model.findById(params.id);
     if (!existing) return ok({ error: "NOT_FOUND" }, 404);
 
@@ -101,6 +105,7 @@ export function itemRoute<T>(config: CrudConfig<T>) {
   });
 
   const DELETE = guard({ permission: `${config.resource}:delete` }, async ({ params, user }) => {
+    if (!OBJECT_ID.test(params.id)) return ok({ error: "NOT_FOUND" }, 404);
     const existing = await config.model.findById(params.id);
     if (!existing) return ok({ error: "NOT_FOUND" }, 404);
 

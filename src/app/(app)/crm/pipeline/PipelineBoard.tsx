@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { useToast } from "@/components/ui/Toast";
 import { useI18n } from "@/i18n/provider";
+import { DEAL_STAGE_META } from "@/lib/dealStages";
 import { formatCurrency } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/dictionaries";
@@ -19,14 +20,10 @@ export interface PipelineDeal {
   owner?: { firstName: string; lastName: string } | null;
 }
 
-const STAGES = [
-  ["lead", "عميل محتمل", "Lead", "info"],
-  ["qualified", "مؤهّل", "Qualified", "info"],
-  ["proposal", "عرض سعر", "Proposal", "warning"],
-  ["negotiation", "تفاوض", "Negotiation", "accent"],
-  ["won", "مكسوبة", "Won", "success"],
-  ["lost", "خاسرة", "Lost", "danger"],
-] as const;
+// Stage metadata lives in lib/dealStages so the deal detail page matches.
+const STAGES = Object.entries(DEAL_STAGE_META).map(
+  ([key, [ar, en, tone]]) => [key, ar, en, tone] as const,
+);
 
 const TONE_BAR: Record<string, string> = { info: "bg-info", warning: "bg-warning", accent: "bg-accent", success: "bg-success", danger: "bg-danger" };
 

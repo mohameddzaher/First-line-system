@@ -6,6 +6,14 @@ import { createSessionCookie, verifyPassword } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
 import { permissionsForRole } from "@/lib/rbac";
 import { resolveLandingPage } from "@/lib/landing";
+import {
+  CLEARED_LOCK,
+  clearIpAttempts,
+  clientIp,
+  ipThrottled,
+  lockSecondsRemaining,
+  registerFailure,
+} from "@/lib/loginGuard";
 
 export const runtime = "nodejs";
 
@@ -14,26 +22,10 @@ const LoginSchema = z.object({
   password: z.string().min(1),
 });
 
-/** Naive per-IP throttle. Survives hot reload; resets on deploy. */
-const attempts = new Map<string, { count: number; resetAt: number }>();
-const MAX_ATTEMPTS = 8;
-const WINDOW_MS = 10 * 60 * 1000;
-
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = attempts.get(ip);
-  if (!entry || now > entry.resetAt) {
-    attempts.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return false;
-  }
-  entry.count += 1;
-  return entry.count > MAX_ATTEMPTS;
-}
-
 export async function POST(request: NextRequest) {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip = clientIp(request);
 
-  if (rateLimited(ip)) {
+  if (ipThrottled(ip)) {
     return NextResponse.json(
       { error: "TOO_MANY_ATTEMPTS" },
       { status: 429, headers: { "Retry-After": "600" } },
@@ -62,16 +54,49 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "INVALID_CREDENTIALS" }, { status: 401 });
   }
 
-  const passwordOk = await verifyPassword(parsed.data.password, user.passwordHash);
-  if (!passwordOk) {
+  // Checked before the password so a locked account can't be probed further.
+  const lockedFor = lockSecondsRemaining(user);
+  if (lockedFor > 0) {
     await writeAudit({
       actor: null,
       action: "login_failed",
       resource: "admin.users",
       resourceId: String(user._id),
       resourceLabel: user.email,
-      meta: { reason: "bad_password", ip },
+      meta: { reason: "account_locked", ip },
     });
+    return NextResponse.json(
+      { error: "ACCOUNT_LOCKED", retryAfter: lockedFor },
+      { status: 423, headers: { "Retry-After": String(lockedFor) } },
+    );
+  }
+
+  const passwordOk = await verifyPassword(parsed.data.password, user.passwordHash);
+  if (!passwordOk) {
+    const next = registerFailure(user);
+    await User.updateOne({ _id: user._id }, { $set: next });
+    await writeAudit({
+      actor: null,
+      action: "login_failed",
+      resource: "admin.users",
+      resourceId: String(user._id),
+      resourceLabel: user.email,
+      meta: {
+        reason: "bad_password",
+        ip,
+        attempt: next.failedLoginAttempts,
+        lockedOut: Boolean(next.lockedUntil),
+      },
+    });
+    // Report the lockout that this attempt just triggered, so the user isn't
+    // left retrying a password that can no longer succeed.
+    if (next.lockedUntil) {
+      const seconds = lockSecondsRemaining({ lockedUntil: next.lockedUntil });
+      return NextResponse.json(
+        { error: "ACCOUNT_LOCKED", retryAfter: seconds },
+        { status: 423, headers: { "Retry-After": String(seconds) } },
+      );
+    }
     return NextResponse.json({ error: "INVALID_CREDENTIALS" }, { status: 401 });
   }
 
@@ -88,8 +113,9 @@ export async function POST(request: NextRequest) {
     v: user.sessionVersion ?? 1,
   });
 
-  attempts.delete(ip);
+  clearIpAttempts(ip);
   user.lastLoginAt = new Date();
+  Object.assign(user, CLEARED_LOCK);
   await user.save();
 
   await writeAudit({

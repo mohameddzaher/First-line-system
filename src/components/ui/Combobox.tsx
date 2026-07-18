@@ -190,6 +190,10 @@ export function Combobox({
                   <li key={o.value}>
                     <button
                       type="button"
+                      // The panel is a listbox, so its choices must be options —
+                      // otherwise assistive tech announces an empty list.
+                      role="option"
+                      aria-selected={o.value === value}
                       onClick={() => choose(o.value)}
                       onMouseEnter={() => setActive(i)}
                       className={cn(

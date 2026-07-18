@@ -27,6 +27,17 @@ export const optionalString = z
   .optional()
   .transform((v) => v || undefined);
 
+/**
+ * PATCH-safe variants. `objectId` and `optionalDate` normalise an absent value
+ * to null, which is right on create but destructive on update: a status-only
+ * PATCH would blank every field the client didn't resend. Wrapping them in
+ * .optional() short-circuits before the transform, so an absent key stays
+ * undefined and the existing value is left alone.
+ */
+export const patchObjectId = objectId.optional();
+export const patchDate = optionalDate.optional();
+export const patchString = optionalString.optional();
+
 export const money = z
   .union([z.number(), z.string()])
   .optional()
@@ -126,6 +137,15 @@ export const CreateLeaveTypeSchema = z.object({
 });
 export const UpdateLeaveTypeSchema = CreateLeaveTypeSchema.partial();
 
+// ── Departments ──────────────────────────────────────────────
+export const CreateDepartmentSchema = z.object({
+  nameAr: z.string().trim().min(1),
+  nameEn: z.string().trim().optional(),
+  code: z.string().trim().optional(),
+  isActive: z.boolean().default(true),
+});
+export const UpdateDepartmentSchema = CreateDepartmentSchema.partial();
+
 // ── Contracts ────────────────────────────────────────────────
 export const CreateContractSchema = z.object({
   employee: requiredObjectId,
@@ -210,7 +230,9 @@ export const CreateRequestSchema = z.object({
 });
 export const UpdateRequestSchema = z.object({
   status: z.enum(["open", "in_progress", "resolved", "rejected", "closed"]).optional(),
-  assignedTo: objectId,
+  // patchObjectId, not objectId — a status-only PATCH must not unassign the
+  // request just because the client didn't resend the assignee.
+  assignedTo: patchObjectId,
   subject: optionalString,
   body: optionalString,
 });
@@ -370,13 +392,13 @@ export const CreatePOSchema = z.object({
 export const UpdatePOSchema = z.object({
   orderNumber: z.string().trim().min(1).optional(),
   supplier: requiredObjectId.optional(),
-  warehouse: objectId,
+  warehouse: patchObjectId,
   status: z.enum(["draft", "pending", "approved", "received", "cancelled"]).optional(),
-  orderDate: optionalDate,
-  expectedDate: optionalDate,
+  orderDate: patchDate,
+  expectedDate: patchDate,
   lines: z.array(POLineSchema).optional(),
   vatRate: z.coerce.number().min(0).max(100).optional(),
-  notes: optionalString,
+  notes: patchString,
 });
 
 // ── CRM: Companies, Contacts, Deals ──────────────────────────
@@ -430,6 +452,17 @@ export const CreateTargetSchema = z.object({
 export const UpdateTargetSchema = CreateTargetSchema.partial();
 
 // ── Orders (last-mile delivery) ──────────────────────────────
+/**
+ * An order always has a placed time. `optionalDate` turns an absent value into
+ * null, which would overwrite the schema default and leave the order with no
+ * placed time — breaking SLA math and date sorting. Absent means "now" here.
+ */
+const placedAtField = z
+  .union([z.string(), z.null()])
+  .optional()
+  .transform((v) => (v ? new Date(v) : new Date()))
+  .refine((v) => !Number.isNaN(v.getTime()), "Invalid date");
+
 export const CreateOrderSchema = z.object({
   orderNumber: z.string().trim().min(1),
   externalId: optionalString,
@@ -444,7 +477,7 @@ export const CreateOrderSchema = z.object({
   amount: money,
   codAmount: money,
   deliveryFee: money,
-  placedAt: optionalDate,
+  placedAt: placedAtField,
   slaDueAt: optionalDate,
   notes: optionalString,
 });

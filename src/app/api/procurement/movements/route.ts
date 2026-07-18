@@ -2,7 +2,7 @@ import { guard, ok, readBody } from "@/lib/api";
 import { StockMovement } from "@/models/StockMovement";
 import { InventoryItem } from "@/models/InventoryItem";
 import { CreateMovementSchema } from "@/lib/validators";
-import { writeAudit } from "@/lib/audit";
+import { applyStockMovement } from "@/lib/stockLedger";
 import { runListQuery, type ListSpec } from "@/lib/listQuery";
 import { parseListQuery } from "@/lib/query";
 import type { IStockMovement } from "@/models/StockMovement";
@@ -34,40 +34,23 @@ export const GET = guard({ permission: "procurement.movements:read" }, async ({ 
  */
 export const POST = guard({ permission: "procurement.movements:create" }, async ({ request, user }) => {
   const body = await readBody(request, CreateMovementSchema);
+  const result = await applyStockMovement(
+    {
+      item: body.item,
+      type: body.type,
+      quantity: body.quantity,
+      reason: body.reason,
+      reference: body.reference,
+      employee: body.employee,
+    },
+    user,
+  );
 
-  const item = await InventoryItem.findById(body.item);
-  if (!item) return ok({ error: "ITEM_NOT_FOUND" }, 404);
+  if (result.error === "ITEM_NOT_FOUND") return ok({ error: result.error }, 404);
+  if (result.error === "INSUFFICIENT_STOCK") {
+    return ok({ error: result.error, available: result.available }, 400);
+  }
 
-  let delta = 0;
-  if (body.type === "in") delta = body.quantity;
-  else if (body.type === "out" || body.type === "transfer") delta = -body.quantity;
-  else if (body.type === "adjustment") delta = body.quantity - item.quantity; // set to target
-
-  if (item.quantity + delta < 0) return ok({ error: "INSUFFICIENT_STOCK", available: item.quantity }, 400);
-
-  item.quantity += delta;
-  await item.save();
-
-  const movement = await StockMovement.create({
-    item: body.item,
-    type: body.type,
-    quantity: body.quantity,
-    delta,
-    balanceAfter: item.quantity,
-    reason: body.reason,
-    reference: body.reference,
-    employee: body.employee || null,
-    createdBy: user.id,
-  });
-
-  await writeAudit({
-    actor: user,
-    action: body.type === "in" ? "assign" : "update",
-    resource: "procurement.movements",
-    resourceId: String(movement._id),
-    resourceLabel: `${item.name}: ${delta > 0 ? "+" : ""}${delta}`,
-    meta: { balanceAfter: item.quantity },
-  });
-
-  return ok(movement.toObject(), 201);
+  const movement = await StockMovement.findById(result.movementId).lean();
+  return ok(movement, 201);
 });

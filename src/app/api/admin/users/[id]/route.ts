@@ -6,6 +6,7 @@ import { writeAudit } from "@/lib/audit";
 import { diff } from "@/lib/audit";
 import { UpdateUserSchema } from "@/lib/validators";
 import { checkPrivilegeChange } from "@/lib/privilegeGuard";
+import { CLEARED_LOCK } from "@/lib/loginGuard";
 
 export const runtime = "nodejs";
 
@@ -60,6 +61,13 @@ export const PATCH = guard({ permission: "admin.users:update" }, async ({ reques
   if (body.password) {
     existing.passwordHash = await hashPassword(body.password);
     existing.sessionVersion = (existing.sessionVersion ?? 1) + 1;
+    // An admin-issued password is how a brute-force lockout gets lifted.
+    Object.assign(existing, CLEARED_LOCK);
+  }
+  // Re-enabling an account also clears any lockout left over from the attack
+  // that got it disabled.
+  if (body.isActive === true && !before.isActive) {
+    Object.assign(existing, CLEARED_LOCK);
   }
   // Deactivating a user should also kill their current session.
   if (body.isActive === false && before.isActive) {

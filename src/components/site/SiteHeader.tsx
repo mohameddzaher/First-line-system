@@ -26,6 +26,7 @@ export function SiteHeader({ brand }: { brand: string }) {
     { href: "/about", ar: "من نحن", en: "About" },
     { href: "/articles", ar: "المقالات", en: "Articles" },
     { href: "/careers", ar: "الوظائف", en: "Careers" },
+    { href: "/faq", ar: "الأسئلة الشائعة", en: "FAQ" },
     { href: "/contact", ar: "تواصل معنا", en: "Contact" },
   ];
 

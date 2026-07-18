@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Plus, Pencil, Trash2, UserPlus, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { DataTable, type Column } from "@/components/data/DataTable";
@@ -14,6 +15,7 @@ import { ResourceForm, type FieldDef } from "@/components/data/ResourceForm";
 import { useToast } from "@/components/ui/Toast";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { useI18n } from "@/i18n/provider";
+import { ORDER_FLOW, ORDER_STATUS_META } from "@/lib/orderFlow";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import type { ListResult } from "@/lib/query";
 import type { Locale } from "@/i18n/dictionaries";
@@ -31,22 +33,9 @@ export interface OrderRow {
   driver?: { nameAr: string } | null;
 }
 
-const STATUS: Record<string, [string, string, BadgeTone]> = {
-  new: ["جديد", "New", "neutral"],
-  assigned: ["مُسنَد", "Assigned", "info"],
-  picked_up: ["تم الاستلام", "Picked Up", "info"],
-  in_transit: ["قيد التوصيل", "In Transit", "warning"],
-  delivered: ["تم التوصيل", "Delivered", "success"],
-  failed: ["فشل", "Failed", "danger"],
-  returned: ["مُرتجع", "Returned", "warning"],
-  cancelled: ["ملغى", "Cancelled", "neutral"],
-};
-const FLOW: Record<string, string[]> = {
-  new: ["assigned", "cancelled"],
-  assigned: ["picked_up", "cancelled"],
-  picked_up: ["in_transit", "failed"],
-  in_transit: ["delivered", "failed", "returned"],
-};
+// Lifecycle lives in lib/orderFlow so the detail page offers the same moves.
+const STATUS = ORDER_STATUS_META;
+const FLOW = ORDER_FLOW;
 
 export function OrdersClient({
   initial,
@@ -99,7 +88,7 @@ export function OrdersClient({
   };
 
   const columns: Column<OrderRow>[] = [
-    { key: "orderNumber", header: ar ? "رقم الطلب" : "Order #", sortable: true, cell: (r) => <div><span className="font-mono font-medium text-fg" dir="ltr">{r.orderNumber}</span>{r.slaBreached ? <Badge tone="danger" className="ms-2">SLA</Badge> : null}</div> },
+    { key: "orderNumber", header: ar ? "رقم الطلب" : "Order #", sortable: true, cell: (r) => <div><Link href={`/ops/orders/${r._id}`} className="font-mono font-medium text-primary hover:underline" dir="ltr">{r.orderNumber}</Link>{r.slaBreached ? <Badge tone="danger" className="ms-2">SLA</Badge> : null}</div> },
     { key: "project", header: ar ? "المنصة" : "Platform", cell: (r) => <span className="text-sm text-fg-muted">{r.project?.nameAr ?? "—"}</span> },
     { key: "customer", header: ar ? "العميل" : "Customer", hideOnMobile: true, cell: (r) => <div className="min-w-0"><p className="truncate text-sm text-fg">{r.customerName || "—"}</p>{r.city && <p className="text-xs text-fg-subtle">{r.city}</p>}</div> },
     { key: "driver", header: ar ? "المندوب" : "Driver", cell: (r) => <span className="text-sm text-fg">{r.driver?.nameAr ?? <span className="text-fg-subtle">—</span>}</span> },

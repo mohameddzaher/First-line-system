@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Bell, CheckCheck } from "lucide-react";
 import { useI18n } from "@/i18n/provider";
 import { formatDateTime } from "@/lib/utils";
@@ -66,7 +67,7 @@ export function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         type="button"
-        onClick={() => { setOpen((o) => !o); if (!open && unread > 0) markAll(); }}
+        onClick={() => setOpen((o) => !o)}
         className="relative rounded-lg p-2 text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg"
         aria-label={ar ? "الإشعارات" : "Notifications"}
       >
@@ -108,6 +109,13 @@ export function NotificationBell() {
               ))
             )}
           </div>
+          <Link
+            href="/notifications"
+            onClick={() => setOpen(false)}
+            className="block border-t border-border px-4 py-2.5 text-center text-xs font-medium text-primary transition-colors hover:bg-surface-hover"
+          >
+            {ar ? "عرض كل الإشعارات" : "View all notifications"}
+          </Link>
         </div>
       )}
     </div>

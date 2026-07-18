@@ -1,6 +1,6 @@
 import { guard, ok, readBody } from "@/lib/api";
 import { PurchaseOrder } from "@/models/PurchaseOrder";
-import { InventoryItem } from "@/models/InventoryItem";
+import { applyStockMovement } from "@/lib/stockLedger";
 import { UpdatePOSchema } from "@/lib/validators";
 import { writeAudit, diff } from "@/lib/audit";
 import { computeTotals, poSpec } from "../route";
@@ -32,7 +32,19 @@ export const PATCH = guard({ permission: "procurement.orders:update" }, async ({
     existing.receivedDate = new Date();
     for (const line of existing.lines) {
       if (line.inventoryItem) {
-        await InventoryItem.findByIdAndUpdate(line.inventoryItem, { $inc: { quantity: line.quantity } });
+        // Through the ledger, never a bare $inc — otherwise the stock movement
+        // history and the on-hand quantity drift apart with no trace of the
+        // goods this purchase order brought in.
+        await applyStockMovement(
+          {
+            item: String(line.inventoryItem),
+            type: "in",
+            quantity: line.quantity,
+            reference: existing.orderNumber,
+            reason: `Purchase order ${existing.orderNumber}`,
+          },
+          user,
+        );
       }
     }
   }

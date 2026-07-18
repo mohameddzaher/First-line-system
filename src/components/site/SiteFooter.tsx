@@ -26,6 +26,7 @@ export function SiteFooter({ data }: { data: FooterData }) {
     { href: "/about", ar: "من نحن", en: "About Us" },
     { href: "/articles", ar: "المقالات", en: "Articles" },
     { href: "/careers", ar: "الوظائف", en: "Careers" },
+    { href: "/faq", ar: "الأسئلة الشائعة", en: "FAQ" },
     { href: "/contact", ar: "تواصل معنا", en: "Contact" },
     { href: "/privacy", ar: "سياسة الخصوصية", en: "Privacy Policy" },
     { href: "/terms", ar: "الشروط والأحكام", en: "Terms & Conditions" },

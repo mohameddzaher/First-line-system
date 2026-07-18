@@ -142,7 +142,7 @@ export default async function ExecutiveDashboard() {
         <MiniStat label={ar ? "المشاريع" : "Projects"} value={accByProject.length} tone="info" href="/ops/projects" />
       </Section>
       <div className="mb-8">
-        <Card href="/ops/accounts"><CardHeader title={ar ? "الحسابات حسب المشروع" : "Accounts by project"} action={<OpenLink href="/ops/accounts" locale={locale} />} /><CardBody><HBars data={accByProject.map((r: { name?: string; n: number }) => ({ label: r.name || "—", value: r.n }))} color="accent" /></CardBody></Card>
+        <Card href="/ops/accounts"><CardHeader title={ar ? "الحسابات حسب المشروع" : "Accounts by project"} action={<OpenHint locale={locale} />} /><CardBody><HBars data={accByProject.map((r: { name?: string; n: number }) => ({ label: r.name || "—", value: r.n }))} color="accent" /></CardBody></Card>
       </div>
 
       {/* Commercial section (CRM + Sales) */}
@@ -166,7 +166,7 @@ export default async function ExecutiveDashboard() {
       </Section>
       <div className="grid gap-5 lg:grid-cols-2">
         <Card href="/crm/deals"><CardHeader title={ar ? "خط الأنابيب حسب المرحلة" : "Pipeline by stage"} /><CardBody><HBars data={pipelineBars} color="primary" /></CardBody></Card>
-        <Card href="/procurement/orders"><CardHeader title={ar ? "قيمة الأوامر" : "PO value"} action={<OpenLink href="/procurement/orders" locale={locale} />} /><CardBody className="flex h-full items-center justify-center"><div className="text-center"><p className="text-4xl font-bold tabular text-fg">{formatCurrency(poValueAgg[0]?.v ?? 0, locale)}</p><p className="mt-1 text-sm text-fg-muted">{poOpen} {ar ? "أمر شراء مفتوح" : "open purchase orders"}</p></div></CardBody></Card>
+        <Card href="/procurement/orders"><CardHeader title={ar ? "قيمة الأوامر" : "PO value"} action={<OpenHint locale={locale} />} /><CardBody className="flex h-full items-center justify-center"><div className="text-center"><p className="text-4xl font-bold tabular text-fg">{formatCurrency(poValueAgg[0]?.v ?? 0, locale)}</p><p className="mt-1 text-sm text-fg-muted">{poOpen} {ar ? "أمر شراء مفتوح" : "open purchase orders"}</p></div></CardBody></Card>
       </div>
     </>
   );
@@ -184,6 +184,20 @@ function Section({ title, href, icon, locale, children }: { title: string; href:
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{children}</div>
     </div>
+  );
+}
+
+/**
+ * The same affordance as OpenLink but rendered as a span. A <Card href> is
+ * already an anchor, and nesting a second anchor inside it is invalid HTML —
+ * React rejects it at hydration.
+ */
+function OpenHint({ locale }: { locale: string }) {
+  return (
+    <span className="flex items-center gap-1 text-xs font-medium text-primary">
+      {locale === "ar" ? "فتح القسم" : "Open"}
+      <ArrowLeft className="size-3.5 rtl:rotate-180" aria-hidden />
+    </span>
   );
 }
 

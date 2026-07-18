@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Plus, Pencil, Trash2, X } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { DataTable, type Column } from "@/components/data/DataTable";
@@ -101,7 +102,7 @@ export function OrdersClient({
   };
 
   const columns: Column<OrderRow>[] = [
-    { key: "orderNumber", header: locale === "ar" ? "رقم الأمر" : "PO #", sortable: true, cell: (r) => <span className="font-mono font-medium text-fg" dir="ltr">{r.orderNumber}</span> },
+    { key: "orderNumber", header: locale === "ar" ? "رقم الأمر" : "PO #", sortable: true, cell: (r) => <Link href={`/procurement/orders/${r._id}`} className="font-mono font-medium text-primary hover:underline" dir="ltr">{r.orderNumber}</Link> },
     { key: "supplier", header: locale === "ar" ? "المورّد" : "Supplier", cell: (r) => <span className="text-sm text-fg">{r.supplier?.name || "—"}</span> },
     { key: "orderDate", header: locale === "ar" ? "التاريخ" : "Date", sortable: true, hideOnMobile: true, cell: (r) => <span className="tabular text-sm">{formatDate(r.orderDate)}</span> },
     { key: "total", header: locale === "ar" ? "الإجمالي" : "Total", align: "end", sortable: true, cell: (r) => <span className="tabular font-medium">{formatCurrency(r.total, locale)}</span> },

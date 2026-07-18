@@ -39,6 +39,7 @@ export const NAVIGATION: NavGroup[] = [
       { labelKey: "self.myProfile", href: "/me/profile", always: true },
       { labelKey: "self.myLeaves", href: "/me/leaves", always: true },
       { labelKey: "self.myRequests", href: "/me/requests", always: true },
+      { labelKey: "nav.notifications", href: "/notifications", always: true },
       { labelKey: "self.security", href: "/me/security", always: true },
     ],
   },
@@ -57,6 +58,7 @@ export const NAVIGATION: NavGroup[] = [
       { labelKey: "hr.payroll", href: "/hr/payroll", permission: "hr.payroll:read" },
       { labelKey: "hr.attendance", href: "/hr/attendance", permission: "hr.attendance:read" },
       { labelKey: "hr.leaveTypes", href: "/hr/leave-types", permission: "hr.leaveTypes:read" },
+      { labelKey: "hr.departments", href: "/hr/departments", permission: "hr.departments:read" },
       { labelKey: "hr.tasks", href: "/hr/tasks", permission: "hr.tasks:read" },
       { labelKey: "hr.complaints", href: "/hr/complaints", permission: "hr.complaints:read" },
     ],
@@ -104,6 +106,7 @@ export const NAVIGATION: NavGroup[] = [
     items: [
       { labelKey: "procurement.dashboard", href: "/procurement", permission: "procurement.dashboard:read" },
       { labelKey: "procurement.orders", href: "/procurement/orders", permission: "procurement.orders:read" },
+      { labelKey: "procurement.suppliers", href: "/procurement/suppliers", permission: "procurement.orders:read" },
       { labelKey: "procurement.inventory", href: "/procurement/inventory", permission: "procurement.inventory:read" },
       { labelKey: "procurement.movements", href: "/procurement/movements", permission: "procurement.movements:read" },
       { labelKey: "procurement.warehouses", href: "/procurement/warehouses", permission: "procurement.warehouses:read" },

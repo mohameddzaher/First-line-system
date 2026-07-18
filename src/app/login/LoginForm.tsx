@@ -45,14 +45,19 @@ export function LoginForm({ next }: { next: string }) {
       }
 
       const data = await res.json().catch(() => ({}));
+      const lockMinutes = Math.max(1, Math.ceil((data.retryAfter ?? 900) / 60));
       const message =
         data.error === "ACCOUNT_DISABLED"
           ? t("auth.accountDisabled")
-          : data.error === "TOO_MANY_ATTEMPTS"
+          : data.error === "ACCOUNT_LOCKED"
             ? locale === "ar"
-              ? "محاولات كثيرة جداً. يُرجى المحاولة بعد ١٠ دقائق."
-              : "Too many attempts. Please try again in 10 minutes."
-            : t("auth.invalidCredentials");
+              ? `تم قفل الحساب مؤقتاً بعد محاولات فاشلة متكررة. يُرجى المحاولة بعد ${lockMinutes} دقيقة، أو مراجعة مسؤول النظام.`
+              : `Account temporarily locked after repeated failed attempts. Try again in ${lockMinutes} minutes, or contact your administrator.`
+            : data.error === "TOO_MANY_ATTEMPTS"
+              ? locale === "ar"
+                ? "محاولات كثيرة جداً. يُرجى المحاولة بعد ١٠ دقائق."
+                : "Too many attempts. Please try again in 10 minutes."
+              : t("auth.invalidCredentials");
 
       setError(message);
       setBusy(false);

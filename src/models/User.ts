@@ -20,6 +20,14 @@ export interface IUser {
   lastLoginAt?: Date | null;
   /** Bumped on password change / forced logout to invalidate live sessions. */
   sessionVersion: number;
+  /**
+   * Per-account brute-force lockout. Counted in the database rather than in
+   * memory so it holds across instances and can't be shaken off by rotating
+   * source IPs — an IP throttle alone cannot protect a single account.
+   */
+  failedLoginAttempts: number;
+  lastFailedLoginAt?: Date | null;
+  lockedUntil?: Date | null;
   createdBy?: Types.ObjectId | null;
   createdAt: Date;
   updatedAt: Date;
@@ -47,6 +55,9 @@ const UserSchema = new Schema<IUser>(
     isActive: { type: Boolean, default: true, index: true },
     lastLoginAt: { type: Date, default: null },
     sessionVersion: { type: Number, default: 1 },
+    failedLoginAttempts: { type: Number, default: 0 },
+    lastFailedLoginAt: { type: Date, default: null },
+    lockedUntil: { type: Date, default: null },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
   },
   { timestamps: true },

@@ -32,10 +32,14 @@ export function LoginForm({ next }: { next: string }) {
       });
 
       if (res.ok) {
+        const { landing } = (await res.json().catch(() => ({}))) as { landing?: string };
         toast.success(t("auth.welcomeBack"));
+        // Honour an explicit ?next=, else send the user to the first page their
+        // role can actually open (not everyone can see the executive dashboard).
+        const target = next && next !== "/dashboard" ? next : (landing ?? "/me/profile");
         // replace() so Back doesn't land on the login form; refresh() re-runs the
         // server layout so the shell renders with the new session.
-        router.replace(next);
+        router.replace(target);
         router.refresh();
         return;
       }

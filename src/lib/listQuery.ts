@@ -35,6 +35,8 @@ export interface ListSpec<T> {
   filterMap?: Record<string, (value: string) => FilterQuery<T> | null>;
   /** Whitelist of sortable fields — never trust `sort` from the client. */
   sortable: string[];
+  /** Extra date fields the client may range-filter on (beyond `sortable`). */
+  dateFields?: string[];
   defaultSort?: string;
   /** Base conditions always applied (e.g. scoping to the caller's own records). */
   baseFilter?: FilterQuery<T>;
@@ -87,14 +89,28 @@ export function buildFilter<T>(
     and.push({ $or: or } as FilterQuery<T>);
   }
 
+  // SECURITY: only filters explicitly declared in `filterMap` are honoured. Building
+  // `{ [key]: value }` from an arbitrary `f_<key>` query param would let a caller
+  // filter on unexposed fields — and a key of `$where` would hand MongoDB a
+  // JavaScript expression to execute. Unknown keys are dropped.
   for (const [key, value] of Object.entries(query.filters ?? {})) {
     if (!value || value === "all") continue;
     const mapper = spec.filterMap?.[key];
-    const condition = mapper ? mapper(value) : ({ [key]: value } as FilterQuery<T>);
+    if (!mapper) continue;
+    const condition = mapper(value);
     if (condition) and.push(condition);
   }
 
-  if ((query.dateFrom || query.dateTo) && query.dateField) {
+  // SECURITY: `dateField` also arrives from the query string, so it must be a field
+  // the resource actually exposes — otherwise a caller could range-filter on any
+  // field in the document.
+  const dateFieldAllowed =
+    query.dateField &&
+    (spec.dateFields?.includes(query.dateField) ||
+      spec.sortable.includes(query.dateField) ||
+      query.dateField === "createdAt");
+
+  if ((query.dateFrom || query.dateTo) && query.dateField && dateFieldAllowed) {
     const range: Record<string, Date> = {};
     if (query.dateFrom) {
       const from = new Date(query.dateFrom);

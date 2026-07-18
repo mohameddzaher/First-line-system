@@ -29,8 +29,8 @@ export default function AppError({ reset }: { error: Error; reset: () => void })
         <Button variant="secondary" onClick={reset} icon={<RotateCw className="size-4" />}>
           {locale === "ar" ? "إعادة المحاولة" : "Try again"}
         </Button>
-        <Link href="/dashboard">
-          <Button>{t("nav.executive")}</Button>
+        <Link href="/me/profile">
+          <Button>{t("self.myProfile")}</Button>
         </Link>
       </div>
     </div>

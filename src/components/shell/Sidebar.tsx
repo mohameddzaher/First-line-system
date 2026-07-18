@@ -22,6 +22,7 @@ import {
 import { NAVIGATION, type NavGroup } from "@/config/navigation";
 import { useI18n } from "@/i18n/provider";
 import { can } from "@/lib/rbac";
+import { resolveLandingPage } from "@/lib/landing";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
@@ -127,7 +128,7 @@ export function Sidebar({
         )}
       >
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-5">
-          <Link href="/dashboard" className="flex items-center gap-2.5 rounded-lg">
+          <Link href={resolveLandingPage(permissions)} className="flex items-center gap-2.5 rounded-lg">
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-fg">
               FL
             </span>

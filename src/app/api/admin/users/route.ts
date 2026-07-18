@@ -6,6 +6,7 @@ import { writeAudit } from "@/lib/audit";
 import { runListQuery } from "@/lib/listQuery";
 import { parseListQuery } from "@/lib/query";
 import { CreateUserSchema } from "@/lib/validators";
+import { checkPrivilegeChange } from "@/lib/privilegeGuard";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,10 @@ export const GET = guard({ permission: "admin.users:read" }, async ({ request })
 
 export const POST = guard({ permission: "admin.users:create" }, async ({ request, user }) => {
   const body = await readBody(request, CreateUserSchema);
+
+  // Creating a user must not be a route to minting a super admin.
+  const privilegeError = checkPrivilegeChange(user, body, null);
+  if (privilegeError) return ok({ error: privilegeError }, 403);
 
   // One login per employee — enforce before the write so the error is clean.
   if (body.employee) {

@@ -4,6 +4,8 @@ import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { createSessionCookie, verifyPassword } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
+import { permissionsForRole } from "@/lib/rbac";
+import { resolveLandingPage } from "@/lib/landing";
 
 export const runtime = "nodejs";
 
@@ -108,5 +110,11 @@ export async function POST(request: NextRequest) {
     resourceLabel: user.email,
   });
 
-  return NextResponse.json({ ok: true });
+  // Tell the client where this user can actually land — non-admin roles have no
+  // access to the executive dashboard.
+  const rolePerms = permissionsForRole(user.role);
+  const granted = new Set<string>([...rolePerms, ...(user.extraPermissions ?? [])]);
+  for (const denied of user.deniedPermissions ?? []) granted.delete(denied);
+
+  return NextResponse.json({ ok: true, landing: resolveLandingPage([...granted], user.role) });
 }

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requirePermission } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/auth";
+import { can } from "@/lib/rbac";
+import { resolveLandingPage } from "@/lib/landing";
 import { getLocale } from "@/i18n/server";
 import { connectDB } from "@/lib/db";
 import { Employee } from "@/models/Employee";
@@ -27,7 +30,11 @@ export const metadata: Metadata = { title: "Executive Overview" };
 export const dynamic = "force-dynamic";
 
 export default async function ExecutiveDashboard() {
-  await requirePermission("exec.overview:read");
+  // /dashboard is the default post-login target, but only admins can see the
+  // executive overview — send everyone else to their own landing page rather
+  // than showing them a permission error.
+  const user = await requireUser();
+  if (!can(user.permissions, "exec.overview:read")) redirect(resolveLandingPage(user.permissions, user.role));
   await connectDB();
   const locale = await getLocale();
   const ar = locale === "ar";

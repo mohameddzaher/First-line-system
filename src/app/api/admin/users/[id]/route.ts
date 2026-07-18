@@ -5,6 +5,7 @@ import { hashPassword } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
 import { diff } from "@/lib/audit";
 import { UpdateUserSchema } from "@/lib/validators";
+import { checkPrivilegeChange } from "@/lib/privilegeGuard";
 
 export const runtime = "nodejs";
 
@@ -23,6 +24,13 @@ export const PATCH = guard({ permission: "admin.users:update" }, async ({ reques
   if (!existing) return ok({ error: "NOT_FOUND" }, 404);
 
   const before = existing.toObject() as unknown as Record<string, unknown>;
+
+  // Holding admin.users:update must not be a route to super admin.
+  const privilegeError = checkPrivilegeChange(user, body, {
+    _id: existing._id,
+    role: existing.role,
+  });
+  if (privilegeError) return ok({ error: privilegeError }, 403);
 
   if (body.employee && String(body.employee) !== String(existing.employee ?? "")) {
     const linked = await User.findOne({ employee: body.employee, _id: { $ne: existing._id } }).lean();

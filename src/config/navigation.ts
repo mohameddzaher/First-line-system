@@ -39,6 +39,7 @@ export const NAVIGATION: NavGroup[] = [
       { labelKey: "self.myProfile", href: "/me/profile", always: true },
       { labelKey: "self.myLeaves", href: "/me/leaves", always: true },
       { labelKey: "self.myRequests", href: "/me/requests", always: true },
+      { labelKey: "self.security", href: "/me/security", always: true },
     ],
   },
   {

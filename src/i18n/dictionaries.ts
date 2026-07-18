@@ -138,6 +138,7 @@ export const dictionaries = {
     "self.myProfile": "ملفي الشخصي",
     "self.myLeaves": "إجازاتي",
     "self.myRequests": "طلباتي",
+    "self.security": "الأمان",
 
     // Fleet
     "fleet.dashboard": "لوحة المركبات",
@@ -344,6 +345,7 @@ export const dictionaries = {
     "self.myProfile": "My Profile",
     "self.myLeaves": "My Leaves",
     "self.myRequests": "My Requests",
+    "self.security": "Security",
 
     "fleet.dashboard": "Vehicles Dashboard",
     "fleet.vehicles": "Fleet & Authorizations",

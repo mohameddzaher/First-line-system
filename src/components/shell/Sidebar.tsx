@@ -15,6 +15,7 @@ import {
   Globe,
   Settings,
   Boxes,
+  Wallet,
   ChevronDown,
   X,
 } from "lucide-react";
@@ -35,6 +36,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   Globe,
   Settings,
   Boxes,
+  Wallet,
 };
 
 export function Sidebar({

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Menu, Sun, Moon, Monitor, Languages, LogOut, User } from "lucide-react";
 import { useI18n } from "@/i18n/provider";
+import { NotificationBell } from "@/components/shell/NotificationBell";
 import { useTheme, type Theme } from "@/components/ThemeProvider";
 import { useToast } from "@/components/ui/Toast";
 import { ROLES } from "@/lib/rbac";
@@ -70,6 +71,8 @@ export function Topbar({ user, onMenuClick }: { user: CurrentUser; onMenuClick: 
       </button>
 
       <div className="flex-1" />
+
+      <NotificationBell />
 
       {/* Language */}
       <button

@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 import { ThirdPartyAccount } from "@/models/ThirdPartyAccount";
 import { Project } from "@/models/Project";
 import { Employee } from "@/models/Employee";
+import { Order } from "@/models/Order";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
@@ -42,7 +43,17 @@ export default async function OpsDashboard() {
   const SHIFT: Record<string, [string, string, string]> = { full: ["كامل", "Full", "primary"], morning: ["صباحي", "Morning", "info"], evening: ["مسائي", "Evening", "warning"], night: ["ليلي", "Night", "accent"] };
   const shiftData = byShift.map((r: { _id: string; n: number }) => ({ label: SHIFT[r._id]?.[ar ? 0 : 1] ?? r._id, value: r.n, color: SHIFT[r._id]?.[2] ?? "primary" }));
 
+  const [ordersTotal, ordersOpen, ordersDelivered, ordersSla] = await Promise.all([
+    Order.countDocuments({}),
+    Order.countDocuments({ status: { $in: ["new", "assigned", "picked_up", "in_transit"] } }),
+    Order.countDocuments({ status: "delivered" }),
+    Order.countDocuments({ slaBreached: true }),
+  ]);
+
   const kpis = [
+    { label: ar ? "الطلبات" : "Orders", value: ordersTotal, icon: <Boxes className="size-5" />, tone: "neutral" as const, href: "/ops/orders", hint: `${ordersOpen} ${ar ? "قيد التنفيذ" : "open"}` },
+    { label: ar ? "تم التوصيل" : "Delivered", value: ordersDelivered, tone: "success" as const, href: "/ops/orders?f_status=delivered" },
+    { label: ar ? "تجاوز SLA" : "SLA Breached", value: ordersSla, tone: "danger" as const, href: "/ops/orders?f_sla=breached" },
     { label: ar ? "إجمالي الحسابات" : "Total Accounts", value: totalAccounts, icon: <Boxes className="size-5" />, tone: "neutral" as const, href: "/ops/accounts" },
     { label: ar ? "حسابات نشطة" : "Active Accounts", value: g(byStatus, "active"), icon: <UserCheck className="size-5" />, tone: "success" as const, href: "/ops/accounts?f_status=active" },
     { label: ar ? "المشاريع" : "Projects", value: projects, icon: <FolderKanban className="size-5" />, tone: "info" as const, href: "/ops/projects" },

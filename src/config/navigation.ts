@@ -26,7 +26,10 @@ export const NAVIGATION: NavGroup[] = [
     id: "executive",
     labelKey: "nav.executive",
     icon: "LayoutDashboard",
-    items: [{ labelKey: "nav.executive", href: "/dashboard", permission: "exec.overview:read" }],
+    items: [
+      { labelKey: "nav.executive", href: "/dashboard", permission: "exec.overview:read" },
+      { labelKey: "reports.view", href: "/reports", permission: "reports.view:read" },
+    ],
   },
   {
     id: "self",
@@ -51,6 +54,7 @@ export const NAVIGATION: NavGroup[] = [
       { labelKey: "hr.custody", href: "/hr/custody", permission: "hr.custody:read" },
       { labelKey: "hr.licenses", href: "/hr/licenses", permission: "hr.licenses:read" },
       { labelKey: "hr.payroll", href: "/hr/payroll", permission: "hr.payroll:read" },
+      { labelKey: "hr.attendance", href: "/hr/attendance", permission: "hr.attendance:read" },
       { labelKey: "hr.leaveTypes", href: "/hr/leave-types", permission: "hr.leaveTypes:read" },
       { labelKey: "hr.tasks", href: "/hr/tasks", permission: "hr.tasks:read" },
       { labelKey: "hr.complaints", href: "/hr/complaints", permission: "hr.complaints:read" },
@@ -78,8 +82,18 @@ export const NAVIGATION: NavGroup[] = [
     icon: "Boxes",
     items: [
       { labelKey: "ops.dashboard", href: "/ops", permission: "ops.dashboard:read" },
+      { labelKey: "ops.orders", href: "/ops/orders", permission: "ops.orders:read" },
       { labelKey: "ops.projects", href: "/ops/projects", permission: "ops.projects:read" },
       { labelKey: "ops.accounts", href: "/ops/accounts", permission: "ops.accounts:read" },
+    ],
+  },
+  {
+    id: "finance",
+    labelKey: "nav.finance",
+    icon: "Wallet",
+    items: [
+      { labelKey: "finance.dashboard", href: "/finance", permission: "finance.dashboard:read" },
+      { labelKey: "finance.transactions", href: "/finance/transactions", permission: "finance.transactions:read" },
     ],
   },
   {
@@ -90,6 +104,7 @@ export const NAVIGATION: NavGroup[] = [
       { labelKey: "procurement.dashboard", href: "/procurement", permission: "procurement.dashboard:read" },
       { labelKey: "procurement.orders", href: "/procurement/orders", permission: "procurement.orders:read" },
       { labelKey: "procurement.inventory", href: "/procurement/inventory", permission: "procurement.inventory:read" },
+      { labelKey: "procurement.movements", href: "/procurement/movements", permission: "procurement.movements:read" },
       { labelKey: "procurement.warehouses", href: "/procurement/warehouses", permission: "procurement.warehouses:read" },
     ],
   },

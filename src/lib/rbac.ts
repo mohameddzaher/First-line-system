@@ -37,6 +37,7 @@ export const RESOURCES = [
   "hr.tasks",
   "hr.complaints",
   "hr.payroll",
+  "hr.attendance",
   // Fleet
   "fleet.dashboard",
   "fleet.vehicles",
@@ -48,12 +49,19 @@ export const RESOURCES = [
   "ops.projects",
   "ops.accounts",
   "ops.assignments",
+  "ops.orders",
+  // Finance
+  "finance.dashboard",
+  "finance.transactions",
+  // Reports
+  "reports.view",
   // Procurement & warehouse
   "procurement.dashboard",
   "procurement.requests",
   "procurement.orders",
   "procurement.inventory",
   "procurement.warehouses",
+  "procurement.movements",
   // CRM
   "crm.dashboard",
   "crm.companies",
@@ -111,6 +119,8 @@ export const ROLES = {
       ...all("hr.tasks"),
       ...all("hr.complaints"),
       ...readOnly("hr.payroll"),
+      ...all("hr.attendance"),
+      ...readOnly("reports.view"),
       ...readOnly("fleet.vehicles"),
       ...readOnly("admin.audit"),
     ],
@@ -152,8 +162,21 @@ export const ROLES = {
       ...all("ops.projects"),
       ...all("ops.accounts"),
       ...all("ops.assignments"),
+      ...all("ops.orders"),
+      ...readOnly("reports.view"),
       ...readOnly("hr.employees"),
       ...readOnly("fleet.vehicles"),
+    ],
+  },
+  finance_manager: {
+    labelEn: "Finance Manager",
+    labelAr: "مدير المالية",
+    permissions: [
+      ...readOnly("finance.dashboard"),
+      ...all("finance.transactions"),
+      ...readOnly("procurement.orders"),
+      ...readOnly("hr.payroll"),
+      ...readOnly("reports.view"),
     ],
   },
   procurement_manager: {
@@ -165,6 +188,7 @@ export const ROLES = {
       ...all("procurement.orders"),
       ...all("procurement.inventory"),
       ...all("procurement.warehouses"),
+      ...all("procurement.movements"),
       ...readOnly("crm.companies"),
       ...readOnly("hr.custody"),
     ],

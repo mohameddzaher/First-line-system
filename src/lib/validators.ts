@@ -429,6 +429,69 @@ export const CreateTargetSchema = z.object({
 });
 export const UpdateTargetSchema = CreateTargetSchema.partial();
 
+// ── Orders (last-mile delivery) ──────────────────────────────
+export const CreateOrderSchema = z.object({
+  orderNumber: z.string().trim().min(1),
+  externalId: optionalString,
+  project: objectId,
+  driver: objectId,
+  status: z.enum(["new", "assigned", "picked_up", "in_transit", "delivered", "failed", "returned", "cancelled"]).default("new"),
+  customerName: optionalString,
+  customerPhone: optionalString,
+  city: optionalString,
+  pickupAddress: optionalString,
+  dropoffAddress: optionalString,
+  amount: money,
+  codAmount: money,
+  deliveryFee: money,
+  placedAt: optionalDate,
+  slaDueAt: optionalDate,
+  notes: optionalString,
+});
+export const UpdateOrderSchema = CreateOrderSchema.partial();
+export const AssignOrderSchema = z.object({ driver: requiredObjectId });
+export const OrderStatusSchema = z.object({
+  status: z.enum(["new", "assigned", "picked_up", "in_transit", "delivered", "failed", "returned", "cancelled"]),
+  note: optionalString,
+});
+
+// ── Finance ──────────────────────────────────────────────────
+export const CreateTransactionSchema = z.object({
+  reference: z.string().trim().min(1),
+  kind: z.enum(["revenue", "expense"]),
+  category: z.string().trim().min(1),
+  amount: z.coerce.number().min(0),
+  date: z.string().min(1).transform((v) => new Date(v)),
+  status: z.enum(["draft", "posted", "reconciled", "void"]).default("posted"),
+  project: objectId,
+  company: objectId,
+  method: optionalString,
+  description: optionalString,
+});
+export const UpdateTransactionSchema = CreateTransactionSchema.partial();
+
+// ── Attendance ───────────────────────────────────────────────
+export const CreateAttendanceSchema = z.object({
+  employee: requiredObjectId,
+  date: z.string().min(1).transform((v) => new Date(v)),
+  status: z.enum(["present", "absent", "leave", "late", "holiday"]).default("present"),
+  checkIn: optionalString,
+  checkOut: optionalString,
+  hours: money,
+  notes: optionalString,
+});
+export const UpdateAttendanceSchema = CreateAttendanceSchema.partial();
+
+// ── Stock movement ───────────────────────────────────────────
+export const CreateMovementSchema = z.object({
+  item: requiredObjectId,
+  type: z.enum(["in", "out", "adjustment", "transfer"]),
+  quantity: z.coerce.number().min(0),
+  reason: optionalString,
+  reference: optionalString,
+  employee: objectId,
+});
+
 // ── CMS: Articles, Jobs, Clients ─────────────────────────────
 export const CreateArticleSchema = z.object({
   slug: z.string().trim().min(1).toLowerCase().regex(/^[a-z0-9-]+$/, "Slug must be url-safe"),
